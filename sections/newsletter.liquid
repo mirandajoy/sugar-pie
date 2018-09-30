@@ -1,48 +1,70 @@
-<style>
-  .newsletter-section {
-    background-color: {{ section.settings.color_bg }};
-  }
-</style>
-
-<div data-section-id="{{ section.id }}" data-section-type="newsletter-section">
-  <div class="text-center">
-    {% include 'newsletter-form', with heading: section.settings.heading, subheading: section.settings.subheading %}
+<div class="newsletter-section{% if section.settings.show_background %} index-section--newsletter-background{% endif %}">
+  <div class="page-width text-center">
+    <div class="section-header text-center">
+      {% if section.settings.section_title != blank %}
+        <label for="Email" class="h2">{{ section.settings.section_title | escape }}</label>
+      {% endif %}
+      {% if section.settings.subheading != blank %}
+        <p>{{ section.settings.subheading | escape }}</p>
+      {% endif %}
+    </div>
+    {% form 'customer' %}
+      {{ form.errors | default_errors }}
+      {% if form.posted_successfully? %}
+        <p class="form--success">{{ 'general.newsletter_form.confirmation' | t }}</p>
+      {% else %}
+        <div class="input-group password__input-group">
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <input type="email"
+            name="contact[email]"
+            id="Email"
+            class="input-group__field newsletter__input"
+            value="{% if customer %}{{ customer.email }}{% endif %}"
+            placeholder="{{ 'general.newsletter_form.email_placeholder' | t }}"
+            autocorrect="off"
+            autocapitalize="off">
+          <span class="input-group__btn">
+            <button type="submit" class="btn newsletter__submit" name="commit" id="Subscribe">
+              <span class="newsletter__submit-text--large">{{ 'general.newsletter_form.submit' | t }}</span>
+            </button>
+          </span>
+        </div>
+      {% endif %}
+    {% endform %}
   </div>
 </div>
 
 {% schema %}
   {
     "name": "Newsletter",
-    "class": "newsletter-section",
+    "class": "index-section index-section--flush",
     "settings": [
       {
         "type": "text",
-        "id": "heading",
+        "id": "section_title",
         "label": "Heading",
         "default": "Subscribe to our newsletter"
       },
       {
-        "type": "richtext",
+        "type": "text",
         "id": "subheading",
-        "label": "Subtext",
-        "default": "<p>Promotions, new products and sales. Directly to your inbox.</p>"
+        "label": "Subheading",
+        "default": "A short sentence describing what someone will receive by subscribing"
       },
       {
-        "type": "color",
-        "id": "color_bg",
-        "label": "Background color",
-        "default": "#f3f3f3"
+        "id": "show_background",
+        "type": "checkbox",
+        "label": "Show background",
+        "default": true
       },
       {
         "type": "paragraph",
         "content": "Any customers who sign up will have an account created for them in Shopify. [View customers](/admin/customers?query=&accepts_marketing=1)"
       }
     ],
-    "presets": [
-      {
-        "name": "Newsletter",
-        "category": "Promotional"
-      }
-    ]
+    "presets": [{
+      "name": "Newsletter",
+      "category": "Promotional"
+    }]
   }
 {% endschema %}
